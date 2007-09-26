@@ -1,7 +1,7 @@
 ﻿<Window x:Class="Atom2Blogger.Window1"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Atom feed to Blogger uploader" Height="403" Width="681">
+    Title="Atom feed to Blogger uploader" Height="386" Width="541">
 	<Window.Resources>
 		<Style TargetType="{x:Type TextBox}">
 			<Setter Property="Margin" Value="0,0,0,2"/>
@@ -9,94 +9,199 @@
 		<Style TargetType="{x:Type PasswordBox}">
 			<Setter Property="Margin" Value="0,0,0,2"/>
 		</Style>
+		<Style TargetType="{x:Type Button}" x:Key="connectButtonStyle">
+			<Setter Property="Content" Value="Connect"/>
+			<Setter Property="Padding" Value="15,5,15,5"/>
+			<Setter Property="HorizontalAlignment" Value="Center"/>
+		</Style>
 	</Window.Resources>
-	<Grid Margin="5">
+	<Grid>
 		<Grid.RowDefinitions>
-			<RowDefinition Height="auto" />
-			<RowDefinition Height="auto" />
-			<RowDefinition Height="auto" />
-			<RowDefinition Height="auto" />
-			<RowDefinition Height="auto" />
-			<RowDefinition Height="auto" />
-			<RowDefinition Height="*" />
-			<RowDefinition Height="auto" />
-			<RowDefinition Height="auto" />
-			<RowDefinition Height="auto" />
-			<RowDefinition Height="auto" />
+			<RowDefinition/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="50"/>
 		</Grid.RowDefinitions>
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="auto"/>
-			<ColumnDefinition Width="*" />
-			<ColumnDefinition Width="10"/>
-			<ColumnDefinition Width="*" />
-		</Grid.ColumnDefinitions>
-		
-		<Label HorizontalAlignment="Center" Grid.Column="1">Source Blog</Label>
-		<Label HorizontalAlignment="Center" Grid.Column="3">Destination Blog</Label>
-		
-		<Label Grid.Row="1">Feed</Label>
-		<TextBox Grid.Row="1" Grid.Column="1" Name="sourceFeed" 
-				 Text="http://csold.nerdbank.net/blogs/darnit/atom.aspx" />
-		<TextBox Grid.Row="1" Grid.Column="3" Name="destinationFeed"
-				 Text="http://arnottdarnit.blogspot.com/feeds/posts/default" />
 
-		<Label Grid.Row="2">Format</Label>
-		<ComboBox Grid.Row="2" Grid.Column="1" SelectedIndex="0">
-			<ComboBox.Items>
-				<ComboBoxItem>Atom feed</ComboBoxItem>
-			</ComboBox.Items>
-		</ComboBox>
-		<ComboBox Grid.Row="2" Grid.Column="3" SelectedIndex="0">
-			<ComboBox.Items>
-				<ComboBoxItem>Blogger</ComboBoxItem>
-			</ComboBox.Items>
-		</ComboBox>
+		<TabControl>
+			<TabItem Header="Old blog">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition/>
+					</Grid.ColumnDefinitions>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="*"/>
+						<RowDefinition Height="Auto"/>
+					</Grid.RowDefinitions>
 
-		<Label Grid.Row="3">Username</Label>
-		<TextBox Grid.Row="3" Grid.Column="1" Name="sourceUsernameBox" />
-		<TextBox Grid.Row="3" Grid.Column="3" Name="destinationUsernameBox" Text="andrewarnott@gmail.com"/>
-		
-		<Label Grid.Row="4">Password</Label>
-		<PasswordBox Grid.Row="4" Grid.Column="1" Name="sourcePasswordBox" />
-		<PasswordBox Grid.Row="4" Grid.Column="3" Name="destinationPasswordBox" Password=""/>
+					<Label Grid.Row="0">Feed</Label>
+					<TextBox Grid.Row="0" Grid.Column="1" Name="sourceFeed" 
+						 Text="http://csold.someblog/blogs/yourblog/atom.aspx" />
 
-		<Button Grid.Row="5" Grid.Column="1" Name="downloadPostsButton" 
-				Click="downloadPostsButton_Click">Download</Button>
-		<Button Grid.Row="5" Grid.Column="3" Name="uploadPostsButton"
-				Click="uploadButton_Click">Upload</Button>
+					<Label Grid.Row="1">Format</Label>
+					<ComboBox Grid.Row="1" Grid.Column="1" SelectedIndex="0">
+						<ComboBox.Items>
+							<ComboBoxItem>Atom feed</ComboBoxItem>
+						</ComboBox.Items>
+					</ComboBox>
 
-		<Label Grid.Row="6">Posts</Label>
-		<ListView Grid.Row="6" Grid.Column="1" Name="sourcePostsListView">
-			<ListView.View>
-				<GridView>
-					<GridView.Columns>
-						<GridViewColumn Header="Date" DisplayMemberBinding="{Binding Published}"/>
-						<GridViewColumn Header="Title" DisplayMemberBinding="{Binding Title.Text}" />
-					</GridView.Columns>
-				</GridView>
-			</ListView.View>
-		</ListView>
-		<ListView Grid.Row="6" Grid.Column="3" Name="destinationPostsListView">
-			<ListView.View>
-				<GridView>
-					<GridView.Columns>
-						<GridViewColumn Header="Date" DisplayMemberBinding="{Binding Published}"/>
-						<GridViewColumn Header="Title" DisplayMemberBinding="{Binding Title.Text}" />
-					</GridView.Columns>
-				</GridView>
-			</ListView.View>
-		</ListView>
-		
-		<Border Grid.Row="7" Grid.ColumnSpan="4" Grid.RowSpan="3" BorderBrush="Gray" BorderThickness="1"/>
-		<Label Grid.Row="7">Tools</Label>
-		<Button Grid.Row="7" Grid.Column="1" Name="generateRedirectsButton" Content="Generate redirect pages" Click="generateRedirectsButton_Click" />
-		<Button Grid.Row="7" Grid.Column="3" Name="fixInternalLinksButton" Content="Fix inter-post links to stay within blog" Click="fixInternalLinksButton_Click" />
-		
-		<TextBlock Grid.Row="8" TextWrapping="Wrap">Base dir for redirects</TextBlock>
-		<TextBox Grid.Row="8" Grid.Column="1" Name="redirectPagesLocationBox" Text="c:\darcs\nerdbank.net\cs" />
-		
-		<Label Grid.Row="10">Log</Label>
-		<TextBox Grid.Row="10" Grid.Column="1" Grid.ColumnSpan="3" IsReadOnly="True" Name="logBox"
-				 MinHeight="50" VerticalScrollBarVisibility="Auto" />
+					<Label Grid.Row="2">Username</Label>
+					<TextBox Grid.Row="2" Grid.Column="1" Name="sourceUsernameBox" />
+
+					<Label Grid.Row="4">Password</Label>
+					<PasswordBox Grid.Row="4" Grid.Column="1" Name="sourcePasswordBox" />
+
+					<Button Grid.Row="5" Grid.Column="1" 
+							Style="{StaticResource connectButtonStyle}"
+							x:Name="connectToOldBlog" Click="connectToOldBlog_Click">Connect</Button>
+
+					<Label Grid.Row="6">Posts</Label>
+					<ListView Grid.Row="6" Grid.Column="1" Name="sourcePostsListView">
+						<ListView.View>
+							<GridView>
+								<GridView.Columns>
+									<GridViewColumn Header="Date" DisplayMemberBinding="{Binding Published}"/>
+									<GridViewColumn Header="Title" DisplayMemberBinding="{Binding Title.Text}" />
+								</GridView.Columns>
+							</GridView>
+						</ListView.View>
+					</ListView>
+
+
+					<TextBlock Grid.Row="7" Grid.ColumnSpan="2" TextWrapping="Wrap">
+						You should configure your existing blog to publish its entire
+						content (both full posts and the whole history) before beginning
+						the transfer.
+					</TextBlock>
+				</Grid>
+			</TabItem>
+			<TabItem Header="New blog">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition/>
+					</Grid.ColumnDefinitions>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="*"/>
+					</Grid.RowDefinitions>
+
+					<Label Grid.Row="0">Feed</Label>
+
+					<TextBox Grid.Row="0" Grid.Column="1" Name="destinationFeed"
+						 Text="http://yourblog.blogspot.com/feeds/posts/default" />
+
+					<Label Grid.Row="1">Format</Label>
+					<ComboBox Grid.Row="1" Grid.Column="1" SelectedIndex="0">
+						<ComboBox.Items>
+							<ComboBoxItem>Blogger</ComboBoxItem>
+						</ComboBox.Items>
+					</ComboBox>
+
+					<Label Grid.Row="2">Username</Label>
+					<TextBox Grid.Row="2" Grid.Column="1" Name="destinationUsernameBox"/>
+
+					<Label Grid.Row="4">Password</Label>
+					<PasswordBox Grid.Row="4" Grid.Column="1" Name="destinationPasswordBox" />
+
+					<Button Grid.Row="5" Grid.Column="1" 
+							Style="{StaticResource connectButtonStyle}"
+							x:Name="connectToNewBlog" Click="connectToNewBlog_Click">Connect</Button>
+
+					<Label Grid.Row="6">Posts</Label>
+					<ListView Grid.Row="6" Grid.Column="3" Name="destinationPostsListView">
+						<ListView.View>
+							<GridView>
+								<GridView.Columns>
+									<GridViewColumn Header="Date" DisplayMemberBinding="{Binding Published}"/>
+									<GridViewColumn Header="Title" DisplayMemberBinding="{Binding Title.Text}" />
+								</GridView.Columns>
+							</GridView>
+						</ListView.View>
+					</ListView>
+
+				</Grid>
+			</TabItem>
+			<TabItem Header="Transfer">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition/>
+					</Grid.ColumnDefinitions>
+					<Grid.RowDefinitions>
+						<RowDefinition/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+					</Grid.RowDefinitions>
+					<TextBlock TextWrapping="Wrap">
+						You can only publish 50 posts to Blogger per day, per a 
+						Google anti-spam limitation.
+					</TextBlock>
+					<ProgressBar x:Name="transferProgressBar"
+								 Height="20"
+								 Grid.Row="1" />
+
+					<StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Right">
+						<Button x:Name="transferPosts" 
+							Content="Transfer posts now" 
+							Click="transferPosts_Click"
+							/>
+						<Button x:Name="cancelTransfer" Margin="5,0,0,0"
+							Content="Cancel"
+							/>
+					</StackPanel>
+				</Grid>
+			</TabItem>
+			<TabItem Header="Fixups">
+				<StackPanel>
+					<GroupBox Header="Redirect pages">
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition/>
+							</Grid.ColumnDefinitions>
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+							</Grid.RowDefinitions>
+							<TextBlock VerticalAlignment="Center" TextWrapping="Wrap">Base dir for redirects</TextBlock>
+							<TextBox Grid.Column="1" Name="redirectPagesLocationBox" Text="c:\darcs\nerdbank.net\cs" />
+							<Button Grid.Row="1" Grid.ColumnSpan="2" 
+									x:Name="generateRedirectsButton" 
+									HorizontalAlignment="Center"
+									Content="Generate redirect pages" 
+									Click="generateRedirectsButton_Click"
+									/>
+						</Grid>
+					</GroupBox>
+					<GroupBox Header="Post content">
+						<StackPanel>
+							<CheckBox x:Name="fixInternalLinks" Content="Fix interpost links to stay within blog" />
+							<CheckBox x:Name="removeTrackingImage" Content="Remove Community Server tracking image" />
+							<CheckBox x:Name="migrateCategories" Content="Migrate categories"/>
+							<Button x:Name="fixContentButton" 
+									HorizontalAlignment="Center"
+									Content="Fix inter-post links to stay within blog" 
+									Click="fixContentButton_Click"
+									/>
+						</StackPanel>
+					</GroupBox>
+				</StackPanel>
+			</TabItem>
+		</TabControl>
+
+		<Label Grid.Row="1">Log</Label>
+		<TextBox Grid.Row="2" IsReadOnly="True" Name="logBox"
+				 VerticalScrollBarVisibility="Auto" />
 	</Grid>
 </Window>

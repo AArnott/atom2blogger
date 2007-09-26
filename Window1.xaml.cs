@@ -28,27 +28,6 @@ namespace Atom2Blogger {
 		Dictionary<AtomEntry, AtomEntry> oldToNewEntryMapping = new Dictionary<AtomEntry, AtomEntry>();
 		Dictionary<Uri, Uri> oldToNewEntryUriMapping = new Dictionary<Uri, Uri>();
 
-		void downloadPostsButton_Click(object sender, RoutedEventArgs e) {
-			Cursor = Cursors.Wait;
-			try {
-				downloadOldPosts();
-				downloadNewPosts();
-				createMapping();
-			} finally {
-				Cursor = Cursors.Arrow;
-			}
-		}
-		void uploadButton_Click(object sender, RoutedEventArgs e) {
-			Service service = getNewService();
-			foreach (AtomEntry oldEntry in oldBlogEntries.Where(entry => !oldToNewEntryMapping.ContainsKey(entry))) {
-				oldToNewEntryMapping[oldEntry] = service.Insert(newFeedUri, oldEntry);
-			}
-
-			// Get an updated list of posts on the new blog.
-			downloadNewPosts();
-			createMapping();
-		}
-
 		Service getNewService() {
 			Service service = new Service("blogger", "Atom2Blogger");
 			service.Credentials = new NetworkCredential(destinationUsernameBox.Text, destinationPasswordBox.Password);
@@ -79,7 +58,9 @@ namespace Atom2Blogger {
 				entry.Content.Type = entryXml.SelectSingleNode("atom:content/@type", nsmgr).Value;
 				entry.Content.Content = entryXml.SelectSingleNode("atom:content", nsmgr).Value;
 				foreach (XPathNavigator categoryXml in entryXml.Select("atom:category/@term", nsmgr)) {
-					entry.Categories.Add(new AtomCategory(categoryXml.Value));
+					var newCat = new AtomCategory(categoryXml.Value);
+					newCat.Scheme = "http://www.blogger.com/atom/ns#";
+					entry.Categories.Add(newCat);
 				}
 				entry.SelfUri = new AtomUri(entryXml.SelectSingleNode("atom:link/@href", nsmgr).Value);
 
@@ -137,32 +118,41 @@ namespace Atom2Blogger {
 
 			// Create feed redirects
 
+			// Also create default.aspx/.htm redirects in all directories
+
 		}
-		void fixInternalLinksButton_Click(object sender, RoutedEventArgs e) {
+		void fixContentButton_Click(object sender, RoutedEventArgs e) {
 			Cursor = Cursors.Wait;
 			try {
 				foreach (AtomEntry entry in getNewFeed().Entries) {
-					string changedContent = filterTrackingImage(entry.Content.Content);
-					foreach (var urlMapping in oldToNewEntryUriMapping) {
-						string oldUrl = urlMapping.Key.ToString();
-						string newUrl = urlMapping.Value.ToString();
-						changedContent = Regex.Replace(changedContent, Regex.Escape(oldUrl),
-							newUrl, RegexOptions.IgnoreCase);
+					string changedContent = entry.Content.Content;
+					if (removeTrackingImage.IsChecked.Value) {
+						changedContent = filterTrackingImage(changedContent);
+					}
+					if (fixInternalLinks.IsChecked.Value) {
+						foreach (var urlMapping in oldToNewEntryUriMapping) {
+							string oldUrl = urlMapping.Key.ToString();
+							string newUrl = urlMapping.Value.ToString();
+							changedContent = Regex.Replace(changedContent, Regex.Escape(oldUrl),
+								newUrl, RegexOptions.IgnoreCase);
+						}
 					}
 					// Only update content field if a change occurred, so we don't upload unchanged content.
 					if (changedContent != entry.Content.Content) {
 						entry.Content.Content = changedContent;
 					}
-					// Fix categories
-					if (entry.Categories.Count == 0) {
-						AtomEntry oldPost = oldBlogEntries.SingleOrDefault(
-							oldEntry => oldEntry.Title.Text == entry.Title.Text &&
-							(oldEntry.Published - entry.Published) < TimeSpan.FromHours(9));
-						if (oldPost != null) {
-							foreach (AtomCategory cat in oldPost.Categories) {
-								AtomCategory newCat = new AtomCategory(cat.Term);
-								newCat.Scheme = "http://www.blogger.com/atom/ns#";
-								entry.Categories.Add(newCat);
+					if (migrateCategories.IsChecked.Value) {
+						// Fix categories
+						if (entry.Categories.Count == 0) {
+							AtomEntry oldPost = oldBlogEntries.SingleOrDefault(
+								oldEntry => oldEntry.Title.Text == entry.Title.Text &&
+								(oldEntry.Published - entry.Published) < TimeSpan.FromDays(1));
+							if (oldPost != null) {
+								foreach (AtomCategory cat in oldPost.Categories) {
+									AtomCategory newCat = new AtomCategory(cat.Term);
+									newCat.Scheme = "http://www.blogger.com/atom/ns#";
+									entry.Categories.Add(newCat);
+								}
 							}
 						}
 					}
@@ -173,6 +163,40 @@ namespace Atom2Blogger {
 				}
 			} finally {
 				Cursor = Cursors.Arrow;
+			}
+		}
+
+		void connectToOldBlog_Click(object sender, RoutedEventArgs e) {
+			Mouse.OverrideCursor = Cursors.Wait;
+			try {
+				downloadOldPosts();
+			} finally {
+				Mouse.OverrideCursor = null;
+			}
+		}
+		void connectToNewBlog_Click(object sender, RoutedEventArgs e) {
+			Mouse.OverrideCursor = Cursors.Wait;
+			try {
+				downloadNewPosts();
+			} finally {
+				Mouse.OverrideCursor = null;
+			}
+		}
+		void transferPosts_Click(object sender, RoutedEventArgs e) {
+			Mouse.OverrideCursor = Cursors.Wait;
+			try {
+				createMapping();
+
+				Service service = getNewService();
+				foreach (AtomEntry oldEntry in oldBlogEntries.Where(entry => !oldToNewEntryMapping.ContainsKey(entry))) {
+					oldToNewEntryMapping[oldEntry] = service.Insert(newFeedUri, oldEntry);
+				}
+
+				// Get an updated list of posts on the new blog.
+				downloadNewPosts();
+				createMapping();
+			} finally {
+				Mouse.OverrideCursor = null;
 			}
 		}
 	}
